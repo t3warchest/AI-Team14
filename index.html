@@ -346,7 +346,7 @@ tfoot td:first-child { text-align: left; }
   width: 10px; height: 10px; border-radius: 2px;
 }
 .bar-row {
-  display: grid; grid-template-columns: 80px 1fr 1fr;
+  display: grid; grid-template-columns: 120px 1fr 1fr;
   gap: 8px; align-items: center; margin-bottom: 10px;
 }
 .bar-label { font-size: .82rem; color: var(--ink-60); font-family: var(--mono); }
@@ -569,7 +569,7 @@ footer strong { color: rgba(255,255,255,.85); }
 <div class="abstract-band">
   <div class="abstract-label">Abstract</div>
   <div class="abstract-text">
-    Recent advances in large language models have enabled agentic systems capable of performing structured data analysis with minimal human intervention. This paper presents a comparative study of a four-agent orchestration system — comprising <strong style="color:#e8cc7a">Planner, ResearchAgent, DataScientist, and CodeReviewerAgent</strong> roles built on AutoGen — against a single-agent oneshot baseline, evaluated across fifty analytical tasks spanning five real-world Kaggle datasets covering retail, healthcare, finance, education, and mobility domains. We introduce a structured evaluation framework spanning output correctness, process quality, latency, robustness, and an LLM-as-judge scoring module for subjective analytical tasks. Across 10 representative benchmark tasks, the multi-agent pipeline achieves higher correctness on complex reasoning tasks at the cost of 3–6× higher latency. The single-agent baseline wins on simple factual queries.
+    Recent advances in large language models have enabled agentic systems capable of performing structured data analysis with minimal human intervention. This paper presents a comparative study of a multi-agent orchestration system — comprising <strong style="color:#e8cc7a">Planner, ResearchAgent, DataScientist, and CodeReviewerAgent</strong> roles built on Microsoft AutoGen AgentChat — against a single-agent baseline, evaluated across fifty analytical tasks spanning five real-world Kaggle datasets covering retail, healthcare, finance, education, and mobility domains. The multi-agent pipeline demonstrates stronger performance on analytically complex tasks requiring structured decomposition, intermediate verification, and multi-step reasoning, while the single-agent baseline remains competitive or preferable on lower-complexity descriptive analytics tasks where coordination overhead outweighs the benefit of explicit orchestration.
   </div>
 </div>
 
@@ -592,11 +592,11 @@ footer strong { color: rgba(255,255,255,.85); }
 
     <h3>Contributions</h3>
     <ul class="styled">
-      <li>A <strong>multi-agent data analytics framework</strong> (Planner → ResearchAgent → DataScientist → CodeReviewerAgent → Result Summarizer) built on Microsoft AutoGen.</li>
-      <li>A <strong>single-agent baseline</strong> using the same underlying GPT-OSS 20B model and execution environment for controlled comparison.</li>
+      <li>A <strong>multi-agent data analytics framework</strong> (Planner → ResearchAgent → DataScientist → CodeReviewerAgent) built on Microsoft AutoGen AgentChat v0.7.5, using SelectorGroupChat for prompt-guided agent routing.</li>
+      <li>A <strong>single-agent baseline</strong> using the same underlying GPT-OSS 20B model and execution environment, operating through AutoGen's RoundRobinGroupChat, for controlled comparison.</li>
       <li>A <strong>benchmark suite of 50 analytical tasks</strong> across five real-world Kaggle datasets spanning retail, healthcare, finance, education, and mobility domains.</li>
-      <li><strong>Empirical results</strong> showing multi-agent orchestration wins 8/10 representative tasks, with the largest gains on complex multi-step reasoning tasks.</li>
-      <li>An <strong>ablation study</strong> confirming the CodeReviewerAgent as the single highest-value component of the multi-agent pipeline.</li>
+      <li><strong>Empirical results</strong> demonstrating that multi-agent orchestration consistently outperforms the baseline on complex tasks, while the single-agent baseline remains more efficient on simple descriptive tasks.</li>
+      <li>Evidence that <strong>verification and iterative refinement</strong> via the CodeReviewerAgent's APPROVED/BLOCKING_FIXES loop contribute substantially to output reliability.</li>
     </ul>
   </section>
 
@@ -610,7 +610,7 @@ footer strong { color: rgba(255,255,255,.85); }
     <div class="related-grid">
       <div class="related-card">
         <div class="related-name">AutoGen (Wu et al., 2023)</div>
-        <div class="related-diff">Conversational multi-agent framework. Our work <strong>builds directly on AutoGen</strong> using SelectorGroupChat for the multi-agent pipeline and RoundRobinGroupChat for the single-agent baseline.</div>
+        <div class="related-diff">Conversational multi-agent framework. Our work <strong>builds directly on AutoGen AgentChat v0.7.5</strong>, using SelectorGroupChat for the multi-agent pipeline and RoundRobinGroupChat for the single-agent baseline.</div>
       </div>
       <div class="related-card">
         <div class="related-name">MetaGPT (Hong et al., 2023)</div>
@@ -618,15 +618,15 @@ footer strong { color: rgba(255,255,255,.85); }
       </div>
       <div class="related-card">
         <div class="related-name">StructGPT (Sui et al., 2023)</div>
-        <div class="related-diff">Framework for LLM reasoning over structured data via schema-aware decomposition. Highlights the challenges our ResearchAgent directly addresses through <strong>explicit methodological guidance</strong> before code generation.</div>
+        <div class="related-diff">Framework for LLM reasoning over structured data via schema-aware decomposition. Highlights the challenges our ResearchAgent directly addresses through <strong>explicit methodological guidance</strong> before code generation begins.</div>
       </div>
       <div class="related-card">
         <div class="related-name">G-Eval / MT-Bench (Liu et al.; Zheng et al., 2023)</div>
-        <div class="related-diff">LLM-as-judge evaluation with structured rubrics. We adapt this paradigm for <strong>data analysis outputs</strong>, scoring across correctness, visualization quality, methodology, and clarity.</div>
+        <div class="related-diff">LLM-as-judge evaluation with structured rubrics. We adapt this paradigm for <strong>data analysis outputs</strong>, scoring across correctness, visualization quality, methodology, and clarity in structured pairwise comparison.</div>
       </div>
     </div>
 
-    <p>Our work differs from prior literature by focusing specifically on end-to-end structured data analytics — where correctness depends not only on code execution but also on methodological appropriateness and visualization quality — and by providing a controlled comparative study under identical model and execution settings.</p>
+    <p>Our work differs from prior literature by focusing specifically on end-to-end structured tabular data analytics — where correctness depends not only on code execution but also on methodological appropriateness and visualization quality — and by providing a controlled comparative study under identical model and execution settings.</p>
   </section>
 
   <!-- 3. Method -->
@@ -634,7 +634,7 @@ footer strong { color: rgba(255,255,255,.85); }
     <span class="section-num">03</span>
     <h2>Method</h2>
 
-    <p>Both pipeline modes share the same LLM backend (<strong>GPT-OSS 20B</strong> via Ollama Cloud) and code executor (AutoGen Python execution sandbox with local command-line runtime). The only variable is orchestration strategy — ensuring all differences in output quality are attributable to architecture, not model capability or tooling.</p>
+    <p>Both pipeline modes share the same LLM backend (<strong>GPT-OSS 20B</strong> via Ollama Cloud API) and code executor (AutoGen's LocalCommandLineCodeExecutor with a local command-line runtime). The dataset is loaded independently for each task and no persistent memory is shared across benchmark runs, preventing information leakage and ensuring a fair comparison. The only variable between pipelines is orchestration strategy.</p>
 
     <figure class="pipeline-fig">
       <div class="arch-diagram">
@@ -644,7 +644,7 @@ footer strong { color: rgba(255,255,255,.85); }
           <div class="agent-box single">
             <div class="agent-icon">🤖</div>
             <div>
-              <div class="agent-name">AssistantAgent</div>
+              <div class="agent-name">Analyst Agent</div>
               <div class="agent-role">Schema → Code → Summary</div>
             </div>
           </div>
@@ -653,11 +653,11 @@ footer strong { color: rgba(255,255,255,.85); }
             <div class="agent-icon">📄</div>
             <div>
               <div class="agent-name">Output</div>
-              <div class="agent-role">evaluation_summary.json</div>
+              <div class="agent-role">Artifacts &amp; final response</div>
             </div>
           </div>
           <div style="margin-top:12px;font-size:.75rem;color:var(--ink-60);text-align:center">
-            MaxMessageTermination(12)<br/>6 required-step flags tracked
+            RoundRobinGroupChat<br/>Single active participant
           </div>
         </div>
 
@@ -681,7 +681,7 @@ footer strong { color: rgba(255,255,255,.85); }
             <div class="agent-icon">🔬</div>
             <div>
               <div class="agent-name">ResearchAgent</div>
-              <div class="agent-role">Schema discovery</div>
+              <div class="agent-role">Methodological guidance</div>
             </div>
           </div>
           <div class="arch-arrow">↓</div>
@@ -689,7 +689,7 @@ footer strong { color: rgba(255,255,255,.85); }
             <div class="agent-icon">💻</div>
             <div>
               <div class="agent-name">DataScientist</div>
-              <div class="agent-role">Code generation & execution</div>
+              <div class="agent-role">Code generation &amp; execution</div>
             </div>
           </div>
           <div class="arch-arrow bidirectional">⇅ BLOCKING_FIXES / APPROVED</div>
@@ -697,30 +697,32 @@ footer strong { color: rgba(255,255,255,.85); }
             <div class="agent-icon">🔍</div>
             <div>
               <div class="agent-name">CodeReviewerAgent</div>
-              <div class="agent-role">Quality gate</div>
+              <div class="agent-role">Internal quality gate</div>
             </div>
           </div>
           <div style="margin-top:12px;font-size:.75rem;color:var(--ink-60);text-align:center">
-            SelectorGroupChat<br/>MaxMessageTermination(20)
+            SelectorGroupChat<br/>LLM-based prompt-guided routing
           </div>
         </div>
       </div>
-      <figcaption>Figure 1. Single-agent (left) vs. multi-agent (right) pipeline architecture. The multi-agent system introduces an explicit planning-review loop absent from the baseline.</figcaption>
+      <figcaption>Figure 1. Single-agent (left) vs. multi-agent (right) pipeline architecture. The multi-agent system introduces explicit planning and validation stages absent from the baseline workflow.</figcaption>
     </figure>
 
     <div class="method-grid">
       <div class="method-card single">
         <h3 style="color:var(--blue)">Single-Agent Baseline</h3>
-        <p>A single Analyst agent handles the full workflow: inspecting the dataset, deciding an analytical strategy, generating Python code, executing it, creating visualizations, and writing the final response. Operates through AutoGen's RoundRobinGroupChat. Efficient but must internally manage every stage of reasoning and validation with no separate planning or review role.</p>
+        <p>A single Analyst agent handles the full workflow: inspecting the dataset, deciding an analytical strategy, generating Python code, executing it, handling errors, creating visualizations, and writing the final response. Operates through AutoGen's RoundRobinGroupChat with only one active participant. It can iterate on its own outputs but has no separate planning, research, or review role — making it efficient but requiring the same agent to internally manage every stage of reasoning and validation.</p>
       </div>
       <div class="method-card multi">
         <h3 style="color:var(--maroon)">Multi-Agent Pipeline</h3>
-        <p>SelectorGroupChat routes messages using an LLM-based selector prompt. The expected order is Planner → ResearchAgent → DataScientist → CodeReviewerAgent → Result Summarizer. <strong>BLOCKING_FIXES</strong> returns control to DataScientist for revision; <strong>APPROVED</strong> advances to final summarization. The staged design creates explicit opportunities to catch incorrect assumptions, weak visualizations, and incomplete reasoning.</p>
+        <p>SelectorGroupChat routes messages using an LLM-based selector prompt. The designed execution order is Planner → ResearchAgent → DataScientist → CodeReviewerAgent. <strong>BLOCKING_FIXES</strong> returns control to DataScientist for revision; <strong>APPROVED</strong> terminates the conversation with the validated output as the final response. The conversation also terminates if the maximum message limit is reached. Missing dependencies are installed automatically before code execution.</p>
       </div>
     </div>
 
-    <h3>Why Specialized Agents?</h3>
-    <p>The Planner–Researcher–Coder–Reviewer pattern mirrors how a human data analysis team would normally operate, cleanly separating concerns a single agent must implicitly juggle — reducing error propagation. The design assumption is that many failures in LLM-based analytics arise not from weak code generation alone, but because a single model is asked to simultaneously plan, reason, implement, debug, validate, and explain. Making intermediate reasoning explicit creates more opportunities to catch incorrect assumptions before they reach the user. Using categorical feedback (<strong>BLOCKING_FIXES</strong> vs <strong>APPROVED</strong>) forces the reviewer to commit to a decision, making failures diagnosable and preventing indefinite loops.</p>
+    <h3>Agent Specialization</h3>
+    <p>Each agent is assigned a narrow, explicitly scoped responsibility. The <strong>Planner</strong> interprets the user request and produces an ordered analysis plan — it is explicitly not responsible for writing code, keeping planning separate from implementation. The <strong>ResearchAgent</strong> provides methodological guidance before code generation begins: identifying suitable analytical methods, recommending visualizations, and flagging risks such as misleading comparisons, data quality issues, or leakage. The <strong>DataScientist</strong> translates the plan and research guidance into executable Python code, performing dataset loading, cleaning, aggregation, visualization generation, and artifact saving, and revises its implementation when blocking issues are identified. The <strong>CodeReviewerAgent</strong> serves as the internal quality-control stage, checking execution success, logical correctness, dependency handling, and whether charts and summaries are complete and interpretable.</p>
+
+    <p>The main design assumption is that many failures in LLM-based analytics arise not from weak code generation alone, but because a single model is asked to simultaneously plan, reason, implement, debug, validate, and explain. Making intermediate reasoning explicit creates more opportunities to catch incorrect assumptions before they reach the user. Using categorical feedback (<strong>BLOCKING_FIXES</strong> vs <strong>APPROVED</strong>) forces the reviewer to commit to a concrete decision, making failures diagnosable and preventing indefinite loops.</p>
   </section>
 
   <!-- 4. Evaluation Framework -->
@@ -728,52 +730,48 @@ footer strong { color: rgba(255,255,255,.85); }
     <span class="section-num">04</span>
     <h2>Evaluation Framework</h2>
 
-    <p>Evaluating agentic systems is harder than evaluating static model outputs — both the final answer <em>and the process</em> of reaching it matter. For each benchmark task, both pipelines are executed independently and the harness records full agent conversation transcripts, generated Python code artifacts, visualization outputs, execution latency, runtime errors, and artifact manifests. For subjective and open-ended tasks, we employ an LLM-as-a-judge framework that performs structured pairwise comparison between pipeline outputs.</p>
+    <p>Both pipelines are executed independently through a benchmark harness for each task. The harness records full agent conversation transcripts, generated Python code artifacts, visualization outputs, execution latency, runtime errors and failure traces, and artifact manifests and metadata summaries. This logging ensures reproducibility and supports detailed post-hoc inspection of pipeline behavior.</p>
 
-    <div class="eval-grid">
-      <div class="eval-card">
-        <div class="eval-pts">40</div>
-        <div class="eval-name">Execution Success</div>
-        <div class="eval-desc">Code ran without exception; <code>return_code == 0</code></div>
-      </div>
-      <div class="eval-card">
-        <div class="eval-pts">30</div>
-        <div class="eval-name">Correctness</div>
-        <div class="eval-desc">Numeric match vs ground truth (5% tol); LLM-judge for prose tasks</div>
-      </div>
-      <div class="eval-card">
-        <div class="eval-pts">20</div>
-        <div class="eval-name">Process Quality</div>
-        <div class="eval-desc">SA: 6 step-flags; MA: all 4 agents in correct order</div>
-      </div>
-      <div class="eval-card">
-        <div class="eval-pts">10</div>
-        <div class="eval-name">Visualization</div>
-        <div class="eval-desc">≥1 image file produced in <code>run_artifacts/</code></div>
-      </div>
-      <div class="eval-card" style="border-top:3px solid #c0392b">
-        <div class="eval-pts" style="color:#c0392b">−10</div>
-        <div class="eval-name">Latency Penalty</div>
-        <div class="eval-desc">Linear deduction above 120 s wall-clock</div>
-      </div>
+    <h3>Benchmark Datasets</h3>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Dataset ID</th><th>Domain</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>retail_kaggle</td><td>Retail / Sales Analytics</td></tr>
+          <tr><td>healthcare_kaggle</td><td>Clinical / Healthcare Analytics</td></tr>
+          <tr><td>finance_kaggle</td><td>Financial Marketing Analytics</td></tr>
+          <tr><td>education_kaggle</td><td>Educational Performance Analytics</td></tr>
+          <tr><td>mobility_kaggle</td><td>Urban Mobility / Demand Analytics</td></tr>
+        </tbody>
+      </table>
     </div>
 
-    <div class="formula-box">
-      score = 0<br/>
-      <span class="formula-comment"># execution, correctness, process, visualization</span><br/>
-      if execution_success:  score += 40<br/>
-      if numeric_match:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score += 30<br/>
-      if steps_ok:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score += 20<br/>
-      if image_count &gt;= 1:  score += 10<br/>
-      <span class="formula-comment"># latency penalty above 120 s</span><br/>
-      if latency &gt; 120:     score -= min(10, (latency-120)/120 * 10)
+    <h3>Benchmark Task Construction</h3>
+    <p>Tasks are pre-authored and manually curated in a centralized registry. Each task specification includes dataset references, task instructions, expected output descriptions, and optional evaluation guidance. Tasks are organized progressively from straightforward descriptive analytics to more demanding protocol-driven evaluations. Simple tasks primarily involve direct filtering, aggregation, schema inspection, or straightforward visualization. Complex tasks require multi-step reasoning, structured validation, fairness-style subgroup analysis, robustness testing, leakage awareness, or deeper interpretive reasoning.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Difficulty</th><th>Dataset</th><th>Example Task</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Simple</td><td>Healthcare</td><td>Summarize dataset shape and data types.</td></tr>
+          <tr><td>Simple</td><td>Retail</td><td>Compare average SALES for each DEALSIZE category.</td></tr>
+          <tr><td>Complex</td><td>Retail</td><td>Perform failure-mode analysis for a SALES prediction model using top absolute-error rows and cluster causes into actionable categories.</td></tr>
+          <tr><td>Complex</td><td>Education</td><td>Evaluate robustness before and after outlier trimming and report metric deltas.</td></tr>
+          <tr><td>Complex</td><td>Mobility</td><td>Conduct subgroup slice audit on prediction error across operational categories.</td></tr>
+        </tbody>
+      </table>
     </div>
+    <p class="table-caption">Table 1. Representative benchmark tasks used during evaluation.</p>
 
-    <h3>Ground Truth for Numerical Tasks</h3>
-    <p><code>scripts/baseline_eval.py</code> runs once before any pipeline evaluation to generate reference values: total rows/columns, mean <code>discounted_price</code>, top-5 product categories, and missing-value rates. These serve as the single source of truth for both scorers.</p>
+    <h3>LLM-as-a-Judge Comparative Evaluation</h3>
+    <p>Because many benchmark tasks involve open-ended analytical reasoning, exact-match correctness metrics alone are insufficient. We employ an LLM-as-a-judge framework that performs structured pairwise comparison between pipeline outputs. The judge receives the original benchmark task, expected output description, optional reference guidance, full execution transcripts from both pipelines, and generated visual artifacts from both pipelines as embedded image inputs — enabling multimodal assessment of chart quality in addition to textual reasoning quality.</p>
 
-    <h3>LLM-as-Judge for Subjective Tasks</h3>
-    <p>For tasks whose output is primarily analytical prose or open-ended interpretation, numerical matching is inapplicable. The judge model receives the original task, expected output description, full execution transcripts from both pipelines, and generated visual artifacts as embedded image inputs — enabling multimodal assessment of chart quality. The judge assigns 1–5 scores across six rubric dimensions adapted from G-Eval (Liu et al., 2023):</p>
+    <p>The judge assigns 1–5 scores across six rubric dimensions:</p>
 
     <div class="rubric-grid" style="grid-template-columns: repeat(3,1fr)">
       <div class="rubric-card"><div class="rubric-pct">✦</div><div class="rubric-name">Overall Quality</div></div>
@@ -784,115 +782,90 @@ footer strong { color: rgba(255,255,255,.85); }
       <div class="rubric-card"><div class="rubric-pct">✦</div><div class="rubric-name">Clarity of Explanation</div></div>
     </div>
 
-    <p>Each dimension is scored 1–5. The final comparative winner is selected holistically by the judge under rubric guidance rather than through a fixed weighted scoring formula. Both outputs are evaluated in the same session for a position-blind head-to-head comparison.</p>
+    <p>The final comparative winner is selected holistically by the judge under rubric guidance rather than through a fixed weighted scoring formula. Both outputs are evaluated in the same session for a position-blind head-to-head comparison.</p>
+
+    <h3>Efficiency Measurement</h3>
+    <p>End-to-end latency is recorded for every benchmark execution using wall-clock timing measured around the complete pipeline run. This includes all LLM inference, orchestration overhead, tool execution, dependency installation, reviewer correction loops, and network latency to remote model endpoints. Judge runtime is excluded from per-pipeline latency measurements so that efficiency comparisons reflect only the execution cost of the analytical pipelines themselves.</p>
   </section>
 
-  <!-- 5. Experiments & Results -->
+  <!-- 5. Results -->
   <section id="results" class="reveal">
     <span class="section-num">05</span>
-    <h2>Experiments &amp; Results</h2>
+    <h2>Results</h2>
 
-    <h3>Benchmark Task Suite</h3>
-    <p>The full benchmark suite contains 50 tasks across five Kaggle datasets. Tasks are organized progressively from straightforward descriptive analytics to more demanding protocol-driven evaluations. The 10-task representative subset below spans all difficulty levels and dataset domains:</p>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th><th>Task summary</th><th>Type</th><th>Difficulty</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>T1</td><td>Summarize dataset shape and data types (Healthcare)</td><td>Factual</td><td>Easy</td></tr>
-          <tr><td>T2</td><td>Top-5 product categories by count (Retail)</td><td>Aggregation</td><td>Easy</td></tr>
-          <tr><td>T3</td><td>Average discounted price across all products (Retail)</td><td>Numeric</td><td>Easy</td></tr>
-          <tr><td>T4</td><td>Distribution histogram of product rating (Retail)</td><td>Visualization</td><td>Medium</td></tr>
-          <tr><td>T5</td><td>Missing value rates for key columns (Finance)</td><td>Quality check</td><td>Easy</td></tr>
-          <tr><td>T6</td><td>Average rating: best_seller vs. non-best_seller per category (Retail)</td><td>Group comparison</td><td>Hard</td></tr>
-          <tr><td>T7</td><td>Scatter: discount % vs. rating, colored by category (Retail)</td><td>Visualization</td><td>Hard</td></tr>
-          <tr><td>T8</td><td>Top-3 categories by last-month purchases (Mobility)</td><td>Filtered agg.</td><td>Medium</td></tr>
-          <tr><td>T9</td><td>Sponsored vs. non-sponsored rating analysis with business recommendations (Retail)</td><td>Textual/subjective</td><td>Hard</td></tr>
-          <tr><td>T10</td><td>Multi-condition filter: best_seller ∩ has_coupon count and top categories (Retail)</td><td>Multi-condition</td><td>Medium</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <h3>Quantitative Results</h3>
-    <p>Composite scores (0–100) for the 10-task representative subset. MA = multi-agent pipeline, SA = single-agent baseline, Lat = wall-clock latency (seconds), Fixes = BLOCKING_FIXES rounds issued by the CodeReviewerAgent.</p>
+    <h3>Overall Benchmark Performance</h3>
+    <p>Across the benchmark suite, evaluation reveals a clear task-dependent tradeoff between the single-agent baseline and the proposed multi-agent framework. A consistent pattern emerges across all five datasets: the single-agent baseline performs competitively on simple descriptive analytics tasks, whereas the multi-agent framework outperforms on all complex benchmark tasks requiring structured decomposition, validation, and multi-step reasoning.</p>
 
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th>Task</th><th>MA Score</th><th>SA Score</th><th>MA Lat (s)</th><th>SA Lat (s)</th><th>Fixes</th><th>Winner</th></tr>
+          <tr><th>Dataset</th><th>Task Type</th><th># Tasks</th><th>Single-Agent</th><th>Multi-Agent</th></tr>
         </thead>
         <tbody>
-          <tr><td>T1 · rows/cols</td><td>100</td><td>100</td><td>28</td><td>7</td><td>0</td><td class="winner-sa">SA (latency)</td></tr>
-          <tr><td>T2 · top-5 cats</td><td>100</td><td>90</td><td>41</td><td>9</td><td>0</td><td class="winner-ma">MA +10</td></tr>
-          <tr><td>T3 · avg price</td><td>100</td><td>100</td><td>35</td><td>8</td><td>0</td><td class="winner-sa">SA (latency)</td></tr>
-          <tr><td>T4 · histogram</td><td>90</td><td>70</td><td>52</td><td>11</td><td>1</td><td class="winner-ma">MA +20</td></tr>
-          <tr><td>T5 · missing vals</td><td>100</td><td>90</td><td>38</td><td>9</td><td>0</td><td class="winner-ma">MA +10</td></tr>
-          <tr><td>T6 · group compare</td><td>90</td><td>60</td><td>89</td><td>13</td><td>2</td><td class="winner-ma">MA +30</td></tr>
-          <tr><td>T7 · scatter plot</td><td>80</td><td>60</td><td>97</td><td>14</td><td>1</td><td class="winner-ma">MA +20</td></tr>
-          <tr><td>T8 · filtered agg</td><td>90</td><td>80</td><td>74</td><td>12</td><td>1</td><td class="winner-ma">MA +10</td></tr>
-          <tr><td>T9 · prose/textual</td><td>85</td><td>65</td><td>112</td><td>15</td><td>2</td><td class="winner-ma">MA +20</td></tr>
-          <tr><td>T10 · multi-cond</td><td>100</td><td>80</td><td>66</td><td>11</td><td>1</td><td class="winner-ma">MA +20</td></tr>
+          <tr><td rowspan="2">Educational</td><td>Simple Tasks</td><td>2</td><td class="winner-sa">Wins</td><td>–</td></tr>
+          <tr><td>Complex Tasks</td><td>8</td><td>–</td><td class="winner-ma">Wins</td></tr>
+          <tr><td rowspan="2">Healthcare</td><td>Simple Tasks</td><td>2</td><td class="winner-sa">Wins</td><td>–</td></tr>
+          <tr><td>Complex Tasks</td><td>8</td><td>–</td><td class="winner-ma">Wins</td></tr>
+          <tr><td rowspan="2">Finance</td><td>Simple Tasks</td><td>2</td><td class="winner-sa">Wins</td><td>–</td></tr>
+          <tr><td>Complex Tasks</td><td>8</td><td>–</td><td class="winner-ma">Wins</td></tr>
+          <tr><td rowspan="2">Urban Mobility</td><td>Simple Tasks</td><td>2</td><td class="winner-sa">Wins</td><td>–</td></tr>
+          <tr><td>Complex Tasks</td><td>8</td><td>–</td><td class="winner-ma">Wins</td></tr>
+          <tr><td rowspan="2">Retail</td><td>Simple Tasks</td><td>2</td><td class="winner-sa">Wins</td><td>–</td></tr>
+          <tr><td>Complex Tasks</td><td>8</td><td>–</td><td class="winner-ma">Wins</td></tr>
         </tbody>
-        <tfoot>
-          <tr><td>Average</td><td>93.5</td><td>79.5</td><td>63.2</td><td>10.9</td><td>—</td><td class="winner-ma">MA (8/10)</td></tr>
-        </tfoot>
       </table>
     </div>
-    <p class="table-caption">Table 1. Composite scores and latency across all 10 benchmark tasks. Scores averaged over 3 independent runs.</p>
+    <p class="table-caption">Table 2. Benchmark performance summary across all evaluated datasets and task categories.</p>
 
-    <!-- Bar chart -->
-    <div class="chart-container">
-      <div class="chart-title">Composite Score by Task</div>
-      <div class="chart-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:var(--maroon)"></div>Multi-Agent</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Single-Agent</div>
-      </div>
-      <div id="bar-chart"></div>
-    </div>
+    <h3>Performance on Simple Tasks</h3>
+    <p>For low-complexity descriptive analytics tasks, the single-agent baseline generally matched or exceeded the performance of the multi-agent framework. These tasks typically involved direct filtering, aggregation, schema inspection, or straightforward summary statistics — all of which required minimal decomposition and limited methodological sophistication. In these settings, the additional planning, research, and review stages introduced by the multi-agent pipeline often produced unnecessary intermediate reasoning steps without materially improving final correctness. The extra orchestration layers primarily increased latency and verbosity rather than analytical quality.</p>
 
     <div class="callout finding">
-      <div class="callout-label">Key Finding</div>
-      <p>Multi-agent wins <strong>8/10 tasks</strong> on composite score. Single-agent wins only on trivially factual tasks (T1, T3) where the coordination overhead erases the margin. On hard tasks (T6, T7, T9) the multi-agent advantage is <strong>20–30 points</strong>, driven primarily by the CodeReviewerAgent catching mislabeled visualizations, incomplete subgroup analyses, and logical inconsistencies in code-generated results.</p>
+      <div class="callout-label">Finding — Simple Tasks</div>
+      <p>Structured multi-agent collaboration is not universally advantageous. When task complexity is low and analytical ambiguity is limited, the coordination overhead of multiple specialized agents outweighs the benefits of explicit decomposition.</p>
     </div>
 
-    <h3>Ablation: Impact of CodeReviewerAgent</h3>
-    <p>We ran the multi-agent pipeline with the CodeReviewerAgent disabled to isolate its contribution to overall performance. The results confirm it is the single highest-value component:</p>
-    <div class="compare-grid">
-      <div class="compare-card with-reviewer">
-        <div class="compare-score">90</div>
-        <div class="compare-label">Task 6 · With Reviewer</div>
-        <div class="compare-detail">✅ Correct groupby logic applied<br/>✅ Both groups computed and validated</div>
-      </div>
-      <div class="compare-card without-reviewer">
-        <div class="compare-score">55</div>
-        <div class="compare-label">Task 6 · Without Reviewer</div>
-        <div class="compare-detail">❌ Incorrect logic propagated silently<br/>❌ No verification stage to catch it</div>
-      </div>
-    </div>
-    <p>Removing the reviewer stage reduces correctness below even the single-agent baseline, confirming that a substantial portion of the observed performance improvement stems not merely from distributing reasoning across multiple agents, but from introducing an explicit internal verification stage. Verification and iterative refinement contribute more to reliability than decomposition alone.</p>
+    <h3>Performance on Complex Tasks</h3>
+    <p>The performance advantage of the multi-agent framework became substantially more pronounced on complex analytical tasks requiring multi-step reasoning, structured validation, grouped comparisons, robustness analysis, fairness-style subgroup evaluation, or protocol-driven interpretive reporting. Qualitative inspection of benchmark traces suggests that the Planner improved task decomposition by breaking compound requests into coherent analytical subtasks, while the ResearchAgent contributed methodological guidance by surfacing relevant metrics, chart recommendations, and potential analytical risks prior to implementation.</p>
 
-    <h3>Textual Task Deep-Dive (Task 9)</h3>
-    <p>Task 9 — sponsored vs. non-sponsored rating analysis — was scored by the LLM judge on five dimensions. The multi-agent response scored dramatically higher on <strong>grounding</strong> and <strong>specificity</strong> because the ResearchAgent had profiled the relevant column distribution and flagged analytical risks in advance, before any code was written:</p>
+    <p>Most importantly, the reviewer loop often improved output quality by identifying issues that would otherwise have propagated into final outputs — including incomplete subgroup breakdowns, insufficient visualization labeling, omitted validation statistics, weak interpretive justification, mislabeled visualizations, and logical inconsistencies in generated code. By contrast, the single-agent baseline often produced outputs that were superficially plausible but more prone to partial reasoning, skipped validation steps, or incomplete adherence to multi-part task requirements.</p>
+
+    <h3>Latency and Efficiency Tradeoff</h3>
+    <p>To quantify orchestration overhead, we evaluate both pipelines on an auxiliary code-correctness benchmark designed to isolate the effect of iterative review on implementation reliability, measuring pass@1 correctness, mean execution latency, and average interaction count under identical settings.</p>
 
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Dimension</th><th>Multi-Agent</th><th>Single-Agent</th></tr></thead>
+        <thead>
+          <tr><th>Metric</th><th>Single-Agent Baseline</th><th>Multi-Agent Framework</th></tr>
+        </thead>
         <tbody>
-          <tr><td>Grounding</td><td>4 / 5</td><td>2 / 5</td></tr>
-          <tr><td>Specificity</td><td>4 / 5</td><td>2 / 5</td></tr>
-          <tr><td>Actionability</td><td>4 / 5</td><td>3 / 5</td></tr>
-          <tr><td>Completeness</td><td>4 / 5</td><td>3 / 5</td></tr>
-          <tr><td>Coherence</td><td>4 / 5</td><td>4 / 5</td></tr>
+          <tr><td>Pass@1 Accuracy</td><td>90% (9 / 10)</td><td class="winner-ma">100% (10 / 10)</td></tr>
+          <tr><td>Mean Latency</td><td class="winner-sa">16.5 s</td><td>56.0 s</td></tr>
+          <tr><td>Mean Interactions</td><td class="winner-sa">1.0</td><td>4.2</td></tr>
         </tbody>
-        <tfoot>
-          <tr><td><strong>Weighted avg</strong></td><td><strong>4.00 ✅ PASS</strong></td><td><strong>2.60 ❌ FAIL</strong></td></tr>
-        </tfoot>
       </table>
     </div>
-    <p class="table-caption">Table 2. LLM-as-judge scores for Task 9 (sponsored vs. non-sponsored rating analysis).</p>
+    <p class="table-caption">Table 3. Code generation correctness and efficiency comparison on an auxiliary benchmark. Multi-agent orchestration improves pass@1 accuracy but incurs substantially higher latency and interaction overhead.</p>
+
+    <p>The multi-agent framework improves code-generation correctness from 90% to 100% by leveraging iterative planning and reviewer-guided correction before final approval. However, this comes at a significant cost — average latency increases by approximately 3.4× and interaction count rises from 1.0 to 4.2 messages per task. These findings reinforce the broader benchmark observations: structured orchestration can substantially improve reliability, but introduces non-trivial overhead that may only be justified when analytical rigor outweighs response-time constraints.</p>
+
+    <h3>Impact of the Validation and Review Stage</h3>
+    <p>One of the most influential components of the proposed framework was the explicit validation loop between the DataScientist and CodeReviewerAgent. Across many benchmark runs, the reviewer identified blocking issues that would likely have remained uncorrected in a single-agent setting — including incorrect chart labels, omitted dependency installation, insufficient explanatory context, incomplete analytical breakdowns, and subtle logical inconsistencies in code-generated results.</p>
+
+    <div class="compare-grid">
+      <div class="compare-card with-reviewer">
+        <div class="compare-score">✅</div>
+        <div class="compare-label">With CodeReviewerAgent</div>
+        <div class="compare-detail">Correct logic applied and validated. Blocking issues caught and corrected before final output is produced. Methodologically complete and interpretable results.</div>
+      </div>
+      <div class="compare-card without-reviewer">
+        <div class="compare-score">❌</div>
+        <div class="compare-label">Without CodeReviewerAgent</div>
+        <div class="compare-detail">Incorrect logic propagates silently into final outputs. No internal verification stage to catch incomplete subgroups, mislabeled charts, or flawed reasoning.</div>
+      </div>
+    </div>
+
+    <p>This observation suggests that verification and iterative refinement may contribute as much to reliability as decomposition itself. In analytical workflows where execution success does not guarantee semantic correctness, explicit review mechanisms appear particularly valuable.</p>
   </section>
 
   <!-- 6. Demo -->
@@ -902,15 +875,7 @@ footer strong { color: rgba(255,255,255,.85); }
 
     <div class="demo-wrap">
       <h3>▶ Pipeline Demo Video</h3>
-      <p>The demo shows both pipelines processing Task 6 (best_seller vs. non-best_seller group comparison) end-to-end — including the ResearchAgent's schema profiling pass, the DataScientist's first (incorrect) attempt, and the CodeReviewerAgent issuing a BLOCKING_FIXES correction before the final APPROVED output.</p>
-      <!-- <div class="demo-placeholder">
-        <div class="play-icon">▶</div>
-        <div>
-          <strong style="color:rgba(255,255,255,.6)">Demo Video</strong><br/>
-          <span>Multi-Agent Pipeline · Task 6 · End-to-End Walkthrough</span><br/>
-          <span style="font-size:.78rem">ResearchAgent schema profiling → DataScientist → CodeReviewerAgent BLOCKING_FIXES → APPROVED</span>
-        </div>
-      </div> -->
+      <p>The demo shows both pipelines processing a complex benchmark task end-to-end — including the ResearchAgent's methodological guidance pass, the DataScientist's code generation and execution, and the CodeReviewerAgent issuing BLOCKING_FIXES before the final APPROVED output is produced.</p>
       <div style="margin: 18px 0;">
         <iframe
           width="100%"
@@ -926,14 +891,14 @@ footer strong { color: rgba(255,255,255,.85); }
     </div>
 
     <div class="demo-wrap" style="margin-top:16px">
-      <h3>📊 Comparison Dashboard</h3>
-      <p>The evaluation harness generates a self-contained HTML dashboard (<code>scripts/render_comparison_dashboard.py</code>) with bar charts and per-task detail tables from <code>eval_results/comparison_results.json</code>. Run the full comparison with:</p>
+      <h3>🖥️ Prototype Interfaces</h3>
+      <p>The framework ships with two prototype interfaces. The single-agent interface accepts a dataset source and natural-language query, returning the final analytical output and visualizations directly. The multi-agent interface additionally surfaces intermediate inter-agent reasoning traces from the Planner, ResearchAgent, DataScientist, and CodeReviewerAgent collaboration process, alongside the validated visualization outputs.</p>
       <div class="formula-box" style="background:rgba(255,255,255,.06);color:#e8cc7a;border-color:rgba(200,169,81,.3)">
-        # Run all 10 tasks through both pipelines<br/>
+        # Run both pipelines across the benchmark suite<br/>
         python scripts/run_comparison.py<br/><br/>
-        # Render the HTML dashboard<br/>
+        # Render the HTML comparison dashboard<br/>
         python scripts/render_comparison_dashboard.py<br/><br/>
-        # Smoke test the scorer (no LLM needed)<br/>
+        # Smoke test the evaluation harness (no LLM needed)<br/>
         python scripts/test_eval_smoke.py
       </div>
     </div>
@@ -945,29 +910,30 @@ footer strong { color: rgba(255,255,255,.85); }
     <h2>Discussion</h2>
 
     <h3>When Multi-Agent Wins</h3>
-    <p>The multi-agent advantage is largest when: (1) the task requires multi-step reasoning or structured validation that a single internal reasoning loop handles unreliably; (2) the output is a visualization with specific formatting requirements that a one-shot pass often violates; or (3) the task involves grouped aggregation, fairness-style subgroup analysis, or robustness testing where silent logic errors are easy to introduce. The ResearchAgent's methodological guidance and CodeReviewerAgent's verification loop jointly prevent the most common failure modes of LLM-based data analysis.</p>
+    <p>The multi-agent advantage is largest when the task requires multi-step reasoning or structured validation that a single internal reasoning loop handles unreliably; when the output is a visualization with specific formatting requirements that a one-shot pass often violates; or when the task involves grouped aggregation, fairness-style subgroup analysis, or robustness testing where silent logic errors are easy to introduce. The ResearchAgent's methodological guidance and CodeReviewerAgent's verification loop jointly prevent the most common failure modes of LLM-based data analysis.</p>
 
     <h3>When Single-Agent Is Sufficient</h3>
-    <p>For simple descriptive analytics tasks — direct filtering, aggregation, schema inspection, or straightforward summary statistics — the single-agent baseline performed identically in correctness while running <strong>3–6× faster</strong>. The coordination overhead of multiple specialized agents is not justified when task complexity is low and analytical ambiguity is limited.</p>
+    <p>For simple descriptive analytics tasks — direct filtering, aggregation, schema inspection, or straightforward summary statistics — the single-agent baseline performed identically in correctness while running substantially faster. The coordination overhead of multiple specialized agents is not justified when task complexity is low and analytical ambiguity is limited.</p>
 
     <div class="callout">
       <div class="callout-label">Practical Recommendation</div>
-      <p>A lightweight task-complexity router that dispatches simple requests to the single-agent baseline while reserving the full collaborative pipeline for analytically demanding queries offers the best of both worlds — and is our primary future work direction.</p>
+      <p>Multi-agent orchestration should be viewed as a <em>selective enhancement mechanism</em> rather than a universally superior replacement for single-agent execution. A lightweight task-complexity router that dispatches simple requests to the single-agent baseline while reserving the full collaborative pipeline for analytically demanding queries offers the best of both worlds — and is our primary future work direction.</p>
     </div>
 
     <h3>Limitations</h3>
     <ul class="styled">
-      <li><strong>Latency overhead:</strong> sequential agent coordination and iterative reviewer loops reduce practicality for low-complexity or time-sensitive workloads.</li>
-      <li><strong>Model ceiling:</strong> orchestration improves reasoning structure but cannot fully compensate for systematic deficiencies in the base model's coding or reasoning ability.</li>
-      <li><strong>Evaluator subjectivity:</strong> LLM-as-a-judge scoring introduces evaluator bias despite structured rubrics and pairwise prompting.</li>
-      <li><strong>Benchmark scope:</strong> the current evaluation focuses on structured tabular analytics and does not yet encompass broader machine learning workflows or multimodal tasks.</li>
+      <li><strong>Latency overhead:</strong> sequential agent coordination and iterative reviewer loops reduce practicality for low-complexity or time-sensitive workloads where benefits of deeper validation do not justify execution cost.</li>
+      <li><strong>Model ceiling:</strong> orchestration improves reasoning structure and output verification but cannot fully compensate for systematic deficiencies in the base model's coding or reasoning ability.</li>
+      <li><strong>Evaluator subjectivity:</strong> LLM-as-a-judge scoring introduces evaluator bias despite structured rubrics and pairwise comparative prompting, remaining an imperfect proxy for human judgment.</li>
+      <li><strong>Benchmark scope:</strong> the current evaluation focuses on structured tabular analytics and does not yet encompass broader machine learning workflows, predictive modeling pipelines, or multimodal analytical tasks.</li>
     </ul>
 
     <h3>Future Work</h3>
     <ul class="styled">
-      <li><strong>Dynamic routing:</strong> classify query complexity to select single vs. multi-agent at runtime, preserving efficiency while selectively leveraging multi-agent robustness.</li>
-      <li><strong>Extended workflows:</strong> expand the framework into end-to-end machine learning pipelines involving model training, evaluation, and hyperparameter tuning.</li>
-      <li><strong>Multimodal verification:</strong> integrate stronger multimodal reasoning for direct visualization inspection and artifact verification to improve reviewer effectiveness.</li>
+      <li><strong>Dynamic routing:</strong> a lightweight routing model could estimate task difficulty and dispatch simple requests to the single-agent baseline while reserving the full collaborative pipeline for analytically demanding queries, preserving efficiency while selectively leveraging multi-agent robustness.</li>
+      <li><strong>Extended workflows:</strong> expand the framework beyond descriptive analytics into end-to-end machine learning workflows involving model training, evaluation, and hyperparameter tuning.</li>
+      <li><strong>Multimodal verification:</strong> integrate stronger multimodal reasoning capabilities for direct visualization inspection and artifact verification to further improve reviewer effectiveness.</li>
+      <li><strong>Chart-grounded question answering:</strong> extend the framework so that generated visualizations become first-class interactive artifacts that users can query directly for follow-up analytical insights, supporting iterative exploration over produced charts and plots.</li>
     </ul>
   </section>
 
@@ -976,11 +942,11 @@ footer strong { color: rgba(255,255,255,.85); }
     <span class="section-num">08</span>
     <h2>Conclusion</h2>
 
-    <p>We presented the Multi-Agent Intelligent Data Analytics Framework — a coordinated LLM-based analytics system that decomposes structured data analysis into specialized planning, research, execution, and validation stages. Implemented using Microsoft AutoGen and GPT-OSS 20B, the framework was benchmarked against a strong single-agent baseline across fifty analytical tasks spanning five real-world Kaggle datasets.</p>
+    <p>We presented the Multi-Agent Intelligent Data Analytics Framework — a coordinated large language model based analytics system that decomposes structured data analysis into specialized planning, research, execution, and validation stages. Implemented using Microsoft AutoGen AgentChat v0.7.5 and GPT-OSS 20B, the framework was designed to evaluate whether explicit role specialization improves analytical performance relative to a strong single-agent baseline.</p>
 
-    <p>The multi-agent pipeline consistently outperforms the baseline on complex, multi-step analytical tasks requiring structured decomposition, intermediate verification, and deep reasoning, with the CodeReviewerAgent being the single highest-value component as confirmed by ablation. The single-agent baseline remains the right choice for simple descriptive queries where latency matters and additional coordination provides limited marginal benefit.</p>
+    <p>Through controlled benchmark evaluation across fifty tasks spanning five real-world Kaggle datasets, we found that multi-agent orchestration offers clear advantages on analytically complex workloads requiring structured decomposition, intermediate verification, and multi-step reasoning. Conversely, the single-agent baseline remained more efficient and competitive on simpler descriptive tasks where additional coordination provided limited marginal benefit.</p>
 
-    <p>More broadly, this work demonstrates that the reliability of agentic AI systems depends not only on the strength of the underlying language model, but also on the design of the orchestration and verification mechanisms surrounding it. The key practical recommendation is a <strong>task-complexity router</strong> that directs queries to the appropriate pipeline rather than committing to one architecture universally.</p>
+    <p>These findings demonstrate that the value of multi-agent orchestration is fundamentally task dependent: structured collaboration improves robustness when analytical complexity exceeds what can be reliably handled by a monolithic reasoning loop, but introduces unnecessary overhead when task demands are modest. More broadly, the reliability of agentic AI systems depends not only on the strength of the underlying language model, but also on the design of the orchestration and verification mechanisms surrounding it. Carefully structured agent decomposition can improve quality and robustness, while adaptive orchestration strategies that balance analytical rigor against execution efficiency remain the key open challenge.</p>
   </section>
 
   <!-- References -->
@@ -988,12 +954,12 @@ footer strong { color: rgba(255,255,255,.85); }
     <span class="section-num">References</span>
     <h2>References</h2>
     <ol>
-      <li>Wu, Q. et al. (2023). AutoGen: Enabling next-gen LLM applications via multi-agent conversation. <em>arXiv:2308.08155.</em></li>
       <li>Hong, S. et al. (2023). MetaGPT: Meta programming for multi-agent collaborative framework. <em>arXiv:2308.00352.</em></li>
-      <li>Li, G. et al. (2023). CAMEL: Communicative agents for mind exploration of large language model society. <em>NeurIPS 2023.</em></li>
-      <li>Liu, Y. et al. (2023). G-Eval: NLG evaluation using GPT-4 with better human alignment. <em>EMNLP 2023.</em></li>
-      <li>Zheng, L. et al. (2023). Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. <em>NeurIPS 2023.</em></li>
+      <li>Li, G. et al. (2023). CAMEL: Communicative agents for mind exploration of large language model society. <em>arXiv:2303.17760.</em></li>
+      <li>Liu, Y. et al. (2023). G-Eval: NLG evaluation using GPT-4 with better human alignment. <em>arXiv:2303.16634.</em></li>
       <li>Sui, D. et al. (2023). StructGPT: A general framework for large language model to reason over structured data. <em>arXiv:2305.09645.</em></li>
+      <li>Wu, Q. et al. (2023). AutoGen: Enabling next-gen LLM applications via multi-agent conversation. <em>arXiv:2308.08155.</em></li>
+      <li>Zheng, L. et al. (2023). Judging LLM-as-a-judge with MT-Bench and Chatbot Arena. <em>arXiv:2306.05685.</em></li>
     </ol>
   </section>
 
@@ -1021,37 +987,41 @@ const obs = new IntersectionObserver(entries => {
 }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
 document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 
-// ── Bar chart ──────────────────────────────────────────────────────────
-const tasks = ['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10'];
-const maScores = [100,100,100,90,100,90,80,90,85,100];
-const saScores = [100,90,100,70,90,60,60,80,65,80];
+// ── Bar chart — Latency comparison ────────────────────────────────────
+const metrics = ['Pass@1 Accuracy', 'Mean Latency (s)', 'Mean Interactions'];
+const maVals  = [100, 56, 4.2];
+const saVals  = [90,  16.5, 1.0];
+const maxVals = [100, 60, 5];
 
 const chartEl = document.getElementById('bar-chart');
-tasks.forEach((t, i) => {
-  const row = document.createElement('div');
-  row.className = 'bar-row';
-  row.innerHTML = `
-    <div class="bar-label">${t}</div>
-    <div class="bar-track">
-      <div class="bar-fill bar-ma" style="width:0%" data-target="${maScores[i]}">${maScores[i]}</div>
-    </div>
-    <div class="bar-track">
-      <div class="bar-fill bar-sa" style="width:0%" data-target="${saScores[i]}">${saScores[i]}</div>
-    </div>
-  `;
-  chartEl.appendChild(row);
-});
+if (chartEl) {
+  metrics.forEach((m, i) => {
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    const maPct = (maVals[i] / maxVals[i] * 100).toFixed(0);
+    const saPct = (saVals[i] / maxVals[i] * 100).toFixed(0);
+    row.innerHTML = `
+      <div class="bar-label">${m}</div>
+      <div class="bar-track">
+        <div class="bar-fill bar-ma" style="width:0%" data-target="${maPct}">${maVals[i]}</div>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill bar-sa" style="width:0%" data-target="${saPct}">${saVals[i]}</div>
+      </div>
+    `;
+    chartEl.appendChild(row);
+  });
 
-// Animate bars when chart scrolls into view
-const chartObs = new IntersectionObserver(entries => {
-  if (entries[0].isIntersecting) {
-    document.querySelectorAll('.bar-fill').forEach(b => {
-      b.style.width = b.dataset.target + '%';
-    });
-    chartObs.disconnect();
-  }
-}, { threshold: 0.3 });
-chartObs.observe(chartEl);
+  const chartObs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      document.querySelectorAll('.bar-fill').forEach(b => {
+        b.style.width = b.dataset.target + '%';
+      });
+      chartObs.disconnect();
+    }
+  }, { threshold: 0.3 });
+  chartObs.observe(chartEl);
+}
 </script>
 
 </body>
